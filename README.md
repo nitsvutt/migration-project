@@ -101,16 +101,57 @@ kubectl exec -it scylladb-0 -n scylladb -- \
 - Create snapshot:
 ```
 kubectl exec -it scylladb-0 -n scylladb -- \
-    nodetool snapshot -t 20251019_snp -sf -- sherlock
+    nodetool snapshot -t 20251019_snp -- sherlock
 ```
 ```
 kubectl exec -it scylladb-1 -n scylladb -- \
-    nodetool snapshot -t 20251019_snp -sf -- sherlock
+    nodetool snapshot -t 20251019_snp -- sherlock
 ```
 
-- Copy data to MinIO:
+- Copy data from old cluster to MinIO:
 ```
-mc cp /tmp/scylladb/ minio/scylladb/
+echo '#!/bin/bash
+for snapshot_dir in /tmp/scylladb/data1/data/sherlock/**/snapshots/20251019_snp/; do
+    tmp="${snapshot_dir#/tmp/scylladb/data1/data/sherlock/}"
+    table_name="${tmp%/snapshots/20251019_snp/}"
+    mc cp -r /tmp/scylladb/data1/data/sherlock/$table_name/snapshots/20251019_snp/ minio/scylladb/data1/data/sherlock/$table_name/snapshots/20251019_snp/
+done' > move_node1.sh
+```
+```
+echo '#!/bin/bash
+for snapshot_dir in /tmp/scylladb/data2/data/sherlock/**/snapshots/20251019_snp/; do
+    tmp="${snapshot_dir#/tmp/scylladb/data2/data/sherlock/}"
+    table_name="${tmp%/snapshots/20251019_snp/}"
+    mc cp -r /tmp/scylladb/data2/data/sherlock/$table_name/snapshots/20251019_snp/ minio/scylladb/data2/data/sherlock/$table_name/snapshots/20251019_snp/
+done' > move_node2.sh
+```
+```
+bash move_node1.sh
+```
+```
+bash move_node2.sh
+```
+
+- Copy data from MinIO to new cluster:
+```
+mc cp --recursive minio/scylladb/data1 /target/data1/tmp/
+```
+```
+mc cp --recursive minio/scylladb/data2 /target/data2/tmp/
+```
+
+- Restore data:
+```
+cp /var/lib/scylla/tmp/data1/data/sherlock/orders-e2c5cd50acfe11f097a50cb3f313a56b/snapshots/20251019_snp/* /var/lib/scylla/data/sherlock/orders-303d9e10ad0d11f084680fae08788721/upload/
+```
+```
+nodetool refresh -las -- sherlock orders
+```
+```
+cp /var/lib/scylla/tmp/data2/data/sherlock/orders-e2c5cd50acfe11f097a50cb3f313a56b/snapshots/20251019_snp/* /var/lib/scylla/data/sherlock/orders-303d9e10ad0d11f084680fae08788721/upload/
+```
+```
+nodetool refresh -las -- sherlock orders
 ```
 
 ### 2.3.2. Using ScyllaDB Migrator (a Spark built-in class)
