@@ -1,0 +1,32 @@
+# clusterip
+apiVersion: v1
+kind: Service
+metadata:
+  name: scylladb-clusterip
+  namespace: scylladb
+spec:
+  type: ClusterIP
+  selector:
+    app: scylladb
+  ports:
+    - name: gossip
+      port: 7000
+    - name: cql
+      port: 9042
+    - name: jmx
+      port: 7199
+---
+# nodeport
+apiVersion: v1
+kind: Service
+metadata:
+  name: scylladb-nodeport
+  namespace: scylladb
+spec:
+  type: NodePort
+  selector:
+    app: scylladb
+  ports:
+    - port: 9042
+      targetPort: 9042
+      nodePort: 30043

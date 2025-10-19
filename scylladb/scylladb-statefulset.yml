@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scylladb
+  namespace: scylladb
+spec:
+  serviceName: scylladb-clusterip
+  selector:
+    matchLabels:
+      app: scylladb
+  replicas: 2
+  template:
+    metadata:
+      namespace: scylladb
+      labels:
+        app: scylladb
+    spec:
+      containers:
+      - name: scylladb
+        image: scylladb/scylla:4.6.3
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 2
+            memory: 2Gi
+        ports:
+          - containerPort: 7000
+            name: gossip
+          - containerPort: 9042
+            name: cql
+          - containerPort: 7199
+            name: jmx
+        env:
+          - name: SCYLLA_CLUSTER_NAME
+            value: "My Cluster"
+          - name: SCYLLA_SEEDS
+            value: "scylladb-0.scylladb-clusterip.scylladb.svc.cluster.local"
+        volumeMounts:
+          - name: scylladb-pv
+            mountPath: /var/lib/scylla
+          - name: scylladb-config
+            mountPath: /etc/scylla/cassandra-rackdc.properties
+            subPath: cassandra-rackdc.properties
+          - name: scylladb-config
+            mountPath: /etc/scylla/scylla.yaml
+            subPath: scylla.yaml
+      volumes:
+        - name: scylladb-config
+          configMap:
+            name: scylladb-config
+  volumeClaimTemplates:
+  - metadata:
+      name: scylladb-pv
+    spec:
+      storageClassName: manual
+      accessModes:
+      - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 10Gi

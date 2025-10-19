@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scylladb-config
+  namespace: scylladb
+data:
+  scylla.yaml: |
+    cluster_name: 'My Cluster'
+    num_tokens: 256
+    commitlog_sync: periodic
+    commitlog_sync_period_in_ms: 10000
+    commitlog_segment_size_in_mb: 32
+    schema_commitlog_segment_size_in_mb: 128
+    seed_provider:
+      - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+        parameters:
+          - seeds: "scylladb-0.scylla-clusterip.scylladb"
+    listen_address: auto
+    native_transport_port: 9042
+    native_shard_aware_transport_port: 19042
+    read_request_timeout_in_ms: 5000
+    write_request_timeout_in_ms: 2000
+    cas_contention_timeout_in_ms: 1000
+    endpoint_snitch: SimpleSnitch
+    rpc_address: 0.0.0.0
+    api_port: 10000
+    api_address: 0.0.0.0
+    batch_size_warn_threshold_in_kb: 128
+    batch_size_fail_threshold_in_kb: 1024
+    partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+    commitlog_total_space_in_mb: -1
+    murmur3_partitioner_ignore_msb_bits: 12
+    strict_is_not_null_in_views: true
+    maintenance_socket: ignore
+    tablets_mode_for_new_keyspaces: enabled
+    rf_rack_valid_keyspaces: false
+
+  cassandra-rackdc.properties: |
+    # dc=my_data_center
+    # rack=my_rack
+    # prefer_local=<false | true>
+    # dc_suffix=<Data Center name suffix, used by EC2SnitchXXX snitches>
