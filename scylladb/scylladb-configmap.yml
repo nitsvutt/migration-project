@@ -14,8 +14,8 @@ data:
     seed_provider:
       - class_name: org.apache.cassandra.locator.SimpleSeedProvider
         parameters:
-          - seeds: "scylladb-0.scylla-clusterip.scylladb"
-    listen_address: auto
+          - seeds: "scylladb-0.scylladb-clusterip.scylladb.svc.cluster.local"
+    listen_address: 0.0.0.0
     native_transport_port: 9042
     native_shard_aware_transport_port: 19042
     read_request_timeout_in_ms: 5000
@@ -34,9 +34,3 @@ data:
     maintenance_socket: ignore
     tablets_mode_for_new_keyspaces: enabled
     rf_rack_valid_keyspaces: false
-
-  cassandra-rackdc.properties: |
-    # dc=my_data_center
-    # rack=my_rack
-    # prefer_local=<false | true>
-    # dc_suffix=<Data Center name suffix, used by EC2SnitchXXX snitches>

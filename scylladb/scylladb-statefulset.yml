@@ -26,21 +26,29 @@ spec:
         ports:
           - containerPort: 7000
             name: gossip
+            protocol: TCP
+          - containerPort: 7001
+            name: sslinternode
+            protocol: TCP
           - containerPort: 9042
             name: cql
+            protocol: TCP
           - containerPort: 7199
             name: jmx
+            protocol: TCP
         env:
-          - name: SCYLLA_CLUSTER_NAME
-            value: "My Cluster"
-          - name: SCYLLA_SEEDS
-            value: "scylladb-0.scylladb-clusterip.scylladb.svc.cluster.local"
+          - name: SEEDS
+            value: scylladb-0.scylladb-clusterip.scylladb.svc.cluster.local
+        command:
+          - bash
+          - '-c'
+          - >
+            ./docker-entrypoint.py \
+              --seeds ${SEEDS} \
+              --smp 2 --memory 2G
         volumeMounts:
           - name: scylladb-pv
             mountPath: /var/lib/scylla
-          - name: scylladb-config
-            mountPath: /etc/scylla/cassandra-rackdc.properties
-            subPath: cassandra-rackdc.properties
           - name: scylladb-config
             mountPath: /etc/scylla/scylla.yaml
             subPath: scylla.yaml
