@@ -15,25 +15,28 @@ data:
       - class_name: org.apache.cassandra.locator.SimpleSeedProvider
         parameters:
           - seeds: "scylla-0.scylla-clusterip.scylla.svc.cluster.local"
-    listen_address: 0.0.0.0
+    listen_address: localhost
     native_transport_port: 9042
     native_shard_aware_transport_port: 19042
     read_request_timeout_in_ms: 5000
     write_request_timeout_in_ms: 2000
     cas_contention_timeout_in_ms: 1000
     endpoint_snitch: SimpleSnitch
-    rpc_address: 0.0.0.0
+    rpc_address: localhost
+    rpc_port: 9160
     api_port: 10000
-    api_address: 0.0.0.0
+    api_address: 127.0.0.1
     batch_size_warn_threshold_in_kb: 128
     batch_size_fail_threshold_in_kb: 1024
     partitioner: org.apache.cassandra.dht.Murmur3Partitioner
     commitlog_total_space_in_mb: -1
     murmur3_partitioner_ignore_msb_bits: 12
+    force_schema_commit_log: true
+    task_ttl_in_seconds: 10
+    consistent_cluster_management: false
     strict_is_not_null_in_views: true
-    maintenance_socket: ignore
-    tablets_mode_for_new_keyspaces: enabled
-    rf_rack_valid_keyspaces: false
+    api_ui_dir: /opt/scylladb/swagger-ui/dist/
+    api_doc_dir: /opt/scylladb/api/api-doc/
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -52,25 +55,28 @@ data:
       - class_name: org.apache.cassandra.locator.SimpleSeedProvider
         parameters:
           - seeds: "scylla-manager-0.scylla-manager-clusterip.scylla.svc.cluster.local"
-    listen_address: 0.0.0.0
+    listen_address: localhost
     native_transport_port: 9042
     native_shard_aware_transport_port: 19042
     read_request_timeout_in_ms: 5000
     write_request_timeout_in_ms: 2000
     cas_contention_timeout_in_ms: 1000
     endpoint_snitch: SimpleSnitch
-    rpc_address: 0.0.0.0
+    rpc_address: localhost
+    rpc_port: 9160
     api_port: 10000
-    api_address: 0.0.0.0
+    api_address: 127.0.0.1
     batch_size_warn_threshold_in_kb: 128
     batch_size_fail_threshold_in_kb: 1024
     partitioner: org.apache.cassandra.dht.Murmur3Partitioner
     commitlog_total_space_in_mb: -1
     murmur3_partitioner_ignore_msb_bits: 12
+    force_schema_commit_log: true
+    task_ttl_in_seconds: 10
+    consistent_cluster_management: false
     strict_is_not_null_in_views: true
-    maintenance_socket: ignore
-    tablets_mode_for_new_keyspaces: enabled
-    rf_rack_valid_keyspaces: false
+    api_ui_dir: /opt/scylladb/swagger-ui/dist/
+    api_doc_dir: /opt/scylladb/api/api-doc/
   scylla-manager.yaml: |
     http: :5080
     database:

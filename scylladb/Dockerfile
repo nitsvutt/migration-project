@@ -1,5 +1,5 @@
-FROM scylladb/scylla-manager-agent:3.3.3 AS agent
-FROM scylladb/scylla:4.6.3
+FROM scylladb/scylla-manager-agent:3.4.2 AS agent
+FROM scylladb/scylla:5.4.2
 
 ARG SCYLLADB_AUTH_TOKEN
 ARG MINIO_ROOT_USER

@@ -46,7 +46,7 @@ docker build \
     --build-arg SCYLLADB_AUTH_TOKEN=$SCYLLADB_AUTH_TOKEN \
     --build-arg MINIO_ROOT_USER=$MINIO_ROOT_USER \
     --build-arg MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD \
-    -t nitsvutt/scylla_with_agent:4.6.3 \
+    -t nitsvutt/scylla_with_agent:5.4.2 \
     -f ./scylladb/Dockerfile \
     .
 ```
@@ -78,10 +78,10 @@ kubectl apply -f ./scylladb/scylla-configmap.yml
 kubectl apply -f ./scylladb/scylla-statefulset.yml
 ```
 
-- Check Scylla Manager Agent:
+- Check Scylla Cluster:
 ```
 kubectl exec -it scylla-0 -n scylla -- \
-    scylla-manager-agent check-location -L s3:scylladb
+    nodetool status
 ```
 
 - Add Scylla Cluster for Scylla Manager:
@@ -98,6 +98,12 @@ kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
 - Run `docker compose`:
 ```
 docker compose -f ./scylladb/docker-compose.yml up -d
+```
+
+- Check Scylla Cluster:
+```
+docker exec -it scylla-node1 \
+    nodetool status
 ```
 
 - Add cluster for Scylla Manager:
@@ -118,20 +124,21 @@ docker exec -it scylla-manager \
 python ./scylladb/development/generate_data.py
 ```
 
-- Copy `init_schema.sql` and `load_data.sql` to volume path:
+- Copy `init_schema.sql` and `load_data.sql` to one pod:
 ```
-kubectl cp ./scylladb/development/*.sql scylladb-0:/var/lib/scylla/
+kubectl cp ./scylladb/development/init_schema.sql scylla/scylla-0:/var/lib/scylla
+kubectl cp ./scylladb/development/load_data.sql scylla/scylla-0:/var/lib/scylla
 ```
 
 - Init schema:
 ```
-kubectl exec -it scylladb-0 -n scylladb -- \
+kubectl exec -it scylla-0 -n scylla -- \
     cqlsh -f /var/lib/scylla/init_schema.sql
 ```
 
 - Load data:
 ```
-kubectl exec -it scylladb-0 -n scylladb -- \
+kubectl exec -it scylla-0 -n scylla -- \
     cqlsh -f /var/lib/scylla/load_data.sql
 ```
 
@@ -141,17 +148,17 @@ kubectl exec -it scylladb-0 -n scylladb -- \
 
 - Backup schema:
 ```
-kubectl exec -it scylladb-0 -n scylladb -- \
+kubectl exec -it scylla-0 -n scylla -- \
     cqlsh -e "DESC SCHEMA" > ./development/backup_schema.sql
 ```
 
 - Create snapshot:
 ```
-kubectl exec -it scylladb-0 -n scylladb -- \
+kubectl exec -it scylla-0 -n scylla -- \
     nodetool snapshot -t 20251019_snp -- sherlock
 ```
 ```
-kubectl exec -it scylladb-1 -n scylladb -- \
+kubectl exec -it scylla-1 -n scylla -- \
     nodetool snapshot -t 20251019_snp -- sherlock
 ```
 
@@ -191,10 +198,10 @@ mc cp --recursive minio/scylladb/data2 /target/data2/tmp/
 
 - Restore schema:
 ```
-kubectl cp ./scylladb/development/backup_schema.sql scylladb-0:/var/lib/scylla/backup_schema.sql
+kubectl cp ./scylla/development/backup_schema.sql scylla-0:/var/lib/scylla/backup_schema.sql
 ```
 ```
-kubectl exec -it scylladb-0 -n scylladb -- \
+kubectl exec -it scylla-0 -n scylla -- \
     cqlsh -f /var/lib/scylla/backup_schema.sql
 ```
 
@@ -229,27 +236,48 @@ nodetool refresh -las -- sherlock orders
 
 ### 2.3.2. Using `notetool snapshot`, `sctool backup`, and `sctool restore`
 
-- Create snapshot:
+- Backup data to MinIO:
 ```
-kubectl exec -it scylladb-0 -n scylladb -- \
-    nodetool snapshot -t 20251019_snp -- sherlock
-```
-```
-kubectl exec -it scylladb-1 -n scylladb -- \
-    nodetool snapshot -t 20251019_snp -- sherlock
+kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
+    sctool backup -c my-cluster -L s3:scylladb -K sherlock
 ```
 
-- Backup data from old cluster to MinIO:
+- Check restoring progress:
 ```
-sctool backup -c my-cluster -L 'minio:scylladb'
+kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
+    sctool progress -c my-cluster backup/26338e65-d579-4b58-9d3a-17194aabd382
+```
+
+- Get snapshot tag:
+```
+kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
+    sctool backup list -c my-cluster -L s3:scylladb -K sherlock
 ```
 
 - Restore schema:
 ```
-sctool restore -c my-cluster -L 'minio:scylladb' --snapshot-tag 20251019_snp --restore-schema
+docker exec -it scylla-manager \
+    sctool restore -c my-cluster -L s3:scylladb -T sm_20251021184003UTC --restore-schema
+```
+
+- Rolling restart Scylla Cluster (only for ScyllaDB 5.4/2024.1 or older), remember to check `nodetool status` for each operation:
+```
+docker exec -it scylla-node1 \
+    supervisorctl restart scylla
+```
+```
+docker exec -it scylla-node2 \
+    supervisorctl restart scylla
 ```
 
 - Restore tables:
 ```
-sctool restore -c my-cluster -L 'minio:scylladb' --snapshot-tag 20251019_snp --restore-tables
+docker exec -it scylla-manager \
+    sctool restore -c my-cluster -L s3:scylladb -K sherlock -T sm_20251021184003UTC --restore-tables
+```
+
+- Check restoring progress:
+```
+docker exec -it scylla-manager \
+    sctool progress -c my-cluster restore/6d421cda-6307-4324-b643-1d52e3106167
 ```

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: scylla
-        image: nitsvutt/scylla_with_agent:4.6.3
+        image: nitsvutt/scylla_with_agent:5.4.2
         imagePullPolicy: IfNotPresent
         resources:
           requests:
@@ -35,6 +35,9 @@ spec:
             protocol: TCP
           - containerPort: 9042
             name: cql
+            protocol: TCP
+          - containerPort: 10000
+            name: rest
             protocol: TCP
           - containerPort: 10001
             name: agent
@@ -89,7 +92,7 @@ spec:
     spec:
       containers:
       - name: scylla-manager-db
-        image: scylladb/scylla:4.6.3
+        image: scylladb/scylla:5.4.2
         imagePullPolicy: IfNotPresent
         resources:
           requests:
@@ -108,6 +111,9 @@ spec:
           - containerPort: 9042
             name: cql
             protocol: TCP
+          - containerPort: 10000
+            name: rest
+            protocol: TCP
         env:
           - name: SEEDS
             value: scylla-manager-0.scylla-manager-clusterip.scylla.svc.cluster.local
@@ -125,7 +131,7 @@ spec:
             mountPath: /etc/scylla/scylla.yaml
             subPath: scylla.yaml
       - name: scylla-manager
-        image: scylladb/scylla-manager:3.3.3
+        image: scylladb/scylla-manager:3.4.2
         imagePullPolicy: IfNotPresent
         resources:
           requests:

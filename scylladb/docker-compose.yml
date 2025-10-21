@@ -1,6 +1,6 @@
 services:
   scylla-node1:
-    image: nitsvutt/scylla_with_agent:4.6.3
+    image: nitsvutt/scylla_with_agent:5.4.2
     container_name: scylla-node1
     command: --smp 2 --memory 2G --cpuset 1,2
     volumes:
@@ -8,12 +8,13 @@ services:
       - $PROJECT_PATH/migration-project/scylladb/config/scylla.yaml:/etc/scylla/scylla.yaml
     ports:
       - 9042:9042
+      - 10000:10000
       - 10001:10001
     networks:
       - lakehouse_platform
   
   scylla-node2:
-    image: nitsvutt/scylla_with_agent:4.6.3
+    image: nitsvutt/scylla_with_agent:5.4.2
     container_name: scylla-node2
     command: --seeds scylla-node1 --smp 2 --memory 2G --cpuset 3,4
     volumes:
@@ -27,16 +28,17 @@ services:
       - lakehouse_platform
   
   scylla-manager-db:
-    image: scylladb/scylla:4.6.3
+    image: scylladb/scylla:5.4.2
     container_name: scylla-manager-db
     volumes:
       - $COMMON_PATH/scylladb/manager_db:/var/lib/scylla
+      - $PROJECT_PATH/migration-project/scylladb/config/scylla-manager-db.yaml:/etc/scylla/scylla.yaml
     command: --smp 1 --memory 1G --cpuset 5
     networks:
       - lakehouse_platform
 
   scylla-manager:
-    image: scylladb/scylla-manager:3.3.3
+    image: scylladb/scylla-manager:3.4.2
     container_name: scylla-manager
     volumes:
       - $PROJECT_PATH/migration-project/scylladb/config/scylla-manager.yaml:/etc/scylla-manager/scylla-manager.yaml
