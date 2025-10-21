@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: scylladb-pv-1
+  name: scylla-pv-1
   labels:
     type: local
 spec:
@@ -16,7 +16,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: scylladb-pv-2
+  name: scylla-pv-2
   labels:
     type: local
 spec:
@@ -27,3 +27,18 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: /scylladb/data2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: scylla-manager-pv-1
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /scylladb/manager_db

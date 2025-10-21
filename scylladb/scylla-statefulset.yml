@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scylla
+  namespace: scylla
+spec:
+  serviceName: scylla-clusterip
+  selector:
+    matchLabels:
+      app: scylla
+  replicas: 2
+  template:
+    metadata:
+      namespace: scylla
+      labels:
+        app: scylla
+    spec:
+      containers:
+      - name: scylla
+        image: nitsvutt/scylla_with_agent:4.6.3
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 2
+            memory: 2Gi
+        ports:
+          - containerPort: 7000
+            name: gossip
+            protocol: TCP
+          - containerPort: 7001
+            name: sslinternode
+            protocol: TCP
+          - containerPort: 7199
+            name: jmx
+            protocol: TCP
+          - containerPort: 9042
+            name: cql
+            protocol: TCP
+          - containerPort: 10001
+            name: agent
+            protocol: TCP
+        env:
+          - name: SEEDS
+            value: scylla-0.scylla-clusterip.scylla.svc.cluster.local
+        command:
+          - bash
+          - '-c'
+          - >
+            ./docker-entrypoint.py \
+              --seeds ${SEEDS} \
+              --smp 2 --memory 2G
+        volumeMounts:
+          - name: scylla-pv
+            mountPath: /var/lib/scylla
+          - name: scylla-config
+            mountPath: /etc/scylla/scylla.yaml
+            subPath: scylla.yaml
+      volumes:
+        - name: scylla-config
+          configMap:
+            name: scylla-config
+  volumeClaimTemplates:
+  - metadata:
+      name: scylla-pv
+    spec:
+      storageClassName: manual
+      accessModes:
+      - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scylla-manager
+  namespace: scylla
+spec:
+  serviceName: scylla-manager-clusterip
+  selector:
+    matchLabels:
+      app: scylla-manager
+  replicas: 1
+  template:
+    metadata:
+      namespace: scylla
+      labels:
+        app: scylla-manager
+    spec:
+      containers:
+      - name: scylla-manager-db
+        image: scylladb/scylla:4.6.3
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+        ports:
+          - containerPort: 7000
+            name: gossip
+            protocol: TCP
+          - containerPort: 7001
+            name: sslinternode
+            protocol: TCP
+          - containerPort: 7199
+            name: jmx
+            protocol: TCP
+          - containerPort: 9042
+            name: cql
+            protocol: TCP
+        env:
+          - name: SEEDS
+            value: scylla-manager-0.scylla-manager-clusterip.scylla.svc.cluster.local
+        command:
+          - bash
+          - '-c'
+          - >
+            ./docker-entrypoint.py \
+              --seeds ${SEEDS} \
+              --smp 1 --memory 1G
+        volumeMounts:
+          - name: scylla-manager-pv
+            mountPath: /var/lib/scylla
+          - name: scylla-manager-config
+            mountPath: /etc/scylla/scylla.yaml
+            subPath: scylla.yaml
+      - name: scylla-manager
+        image: scylladb/scylla-manager:3.3.3
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+        volumeMounts:
+          - name: scylla-manager-config
+            mountPath: /etc/scylla-manager/scylla-manager.yaml
+            subPath: scylla-manager.yaml
+      volumes:
+        - name: scylla-manager-config
+          configMap:
+            name: scylla-manager-config
+  volumeClaimTemplates:
+  - metadata:
+      name: scylla-manager-pv
+    spec:
+      storageClassName: manual
+      accessModes:
+      - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 5Gi

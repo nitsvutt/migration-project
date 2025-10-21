@@ -6,13 +6,6 @@ networking:
 nodes:
 - role: control-plane
   image: kindest/node:v1.34.0
-  extraPortMappings:
-    - containerPort: 30043
-      hostPort: 4043
-      protocol: TCP
-    - containerPort: 30044
-      hostPort: 4044
-      protocol: TCP
 - role: worker
   image: kindest/node:v1.34.0
   extraMounts:

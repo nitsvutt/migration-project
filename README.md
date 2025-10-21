@@ -20,6 +20,12 @@ envsubst < ./k8s/kind_cluster.yml | kind create cluster --config -
 kubectl cluster-info --context kind-my-cluster
 ```
 
+- Connect to pre-exsisting network:
+```
+docker network connect lakehouse_platform my-cluster-control-plane
+docker network connect lakehouse_platform my-cluster-worker
+```
+
 ## 1.2. Set up MinIO
 
 - Run `docker compose`:
@@ -47,29 +53,44 @@ docker build \
 
 #### 2.1.1. On K8s
 
-- Create `scylladb` namespace:
+- Create `scylla` namespace:
 ```
-kubectl create namespace scylladb
+kubectl create namespace scylla
 ```
 
 - Create persistent volume:
 ```
-kubectl apply -f ./scylladb/scylladb-persistent-volume.yml
-```
-
-- Create config map:
-```
-kubectl apply -f ./scylladb/scylladb-configmap.yml
+kubectl apply -f ./scylladb/scylla-persistent-volume.yml
 ```
 
 - Create service:
 ```
-kubectl apply -f ./scylladb/scylladb-service.yml
+kubectl apply -f ./scylladb/scylla-service.yml
 ```
 
-- Create statefulset:
+- Create config map:
 ```
-kubectl apply -f ./scylladb/scylladb-statefulset.yml
+kubectl apply -f ./scylladb/scylla-configmap.yml
+```
+
+- Create Scylla and Scylla Manager statefulset:
+```
+kubectl apply -f ./scylladb/scylla-statefulset.yml
+```
+
+- Check Scylla Manager Agent:
+```
+kubectl exec -it scylla-0 -n scylla -- \
+    scylla-manager-agent check-location -L s3:scylladb
+```
+
+- Add Scylla Cluster for Scylla Manager:
+```
+kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
+    sctool cluster add \
+    --host scylla-0.scylla-clusterip.scylla.svc.cluster.local \
+    --name my-cluster \
+    --auth-token $SCYLLADB_AUTH_TOKEN
 ```
 
 #### 2.1.2. Using Docker Compose
@@ -81,7 +102,8 @@ docker compose -f ./scylladb/docker-compose.yml up -d
 
 - Add cluster for Scylla Manager:
 ```
-sctool cluster add \
+docker exec -it scylla-manager \
+    sctool cluster add \
     --host scylla-node1 \
     --name my-cluster \
     --auth-token $SCYLLADB_AUTH_TOKEN
