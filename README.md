@@ -236,28 +236,22 @@ nodetool refresh -las -- sherlock orders
 
 ### 2.3.2. Using `notetool snapshot`, `sctool backup`, and `sctool restore`
 
-- Backup data to MinIO:
+- Backup data to MinIO (can test with `--dry-run` flag):
 ```
 kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
     sctool backup -c my-cluster -L s3:scylladb -K sherlock
 ```
 
-- Check restoring progress:
+- Check backup progress:
 ```
 kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
-    sctool progress -c my-cluster backup/26338e65-d579-4b58-9d3a-17194aabd382
+    sctool progress -c my-cluster backup/d76aabc0-16e1-4afb-993d-b30adc8885e3
 ```
 
-- Get snapshot tag:
-```
-kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
-    sctool backup list -c my-cluster -L s3:scylladb -K sherlock
-```
-
-- Restore schema:
+- Restore schema (can test with `--dry-run` flag):
 ```
 docker exec -it scylla-manager \
-    sctool restore -c my-cluster -L s3:scylladb -T sm_20251021184003UTC --restore-schema
+    sctool restore -c my-cluster -L s3:scylladb -T sm_20251022095353UTC --restore-schema
 ```
 
 - Rolling restart Scylla Cluster (only for ScyllaDB 5.4/2024.1 or older), remember to check `nodetool status` for each operation:
@@ -270,14 +264,18 @@ docker exec -it scylla-node2 \
     supervisorctl restart scylla
 ```
 
-- Restore tables:
+- Restore tables (can test with `--dry-run` flag):
 ```
 docker exec -it scylla-manager \
-    sctool restore -c my-cluster -L s3:scylladb -K sherlock -T sm_20251021184003UTC --restore-tables
+    sctool restore -c my-cluster -L s3:scylladb -K sherlock -T sm_20251022090826UTC --restore-tables
 ```
 
-- Check restoring progress:
+- Check restore progress:
 ```
 docker exec -it scylla-manager \
-    sctool progress -c my-cluster restore/6d421cda-6307-4324-b643-1d52e3106167
+    sctool progress -c my-cluster restore/a6b7d779-bdfa-46a8-a76b-8b151e1459df
 ```
+
+### 2.3.3. Note
+
+- Ensure that all of your materialized views were created with at least a filter like `IS NOT NULL`. If not, when recreating restored views, it will raise a stupid error called `WHERE` nothing.
