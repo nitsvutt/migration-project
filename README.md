@@ -234,7 +234,7 @@ done' > upload_node2.sh; bash upload_node2.sh
 nodetool refresh -las -- sherlock orders
 ```
 
-### 2.3.2. Using `notetool snapshot`, `sctool backup`, and `sctool restore`
+### 2.3.2. Using `sctool backup` and `sctool restore`
 
 - Backup data to MinIO (can test with `--dry-run` flag):
 ```
@@ -251,7 +251,7 @@ kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
 - Restore schema (can test with `--dry-run` flag):
 ```
 docker exec -it scylla-manager \
-    sctool restore -c my-cluster -L s3:scylladb -T sm_20251022095353UTC --restore-schema
+    sctool restore -c my-cluster -L s3:scylladb -K sherlock -T sm_20251022095353UTC --restore-schema
 ```
 
 - Rolling restart Scylla Cluster (only for ScyllaDB 5.4/2024.1 or older), remember to check `nodetool status` for each operation:
