@@ -8,7 +8,19 @@
 
 ## 1. Set up development environment
 
-## 1.1. Set up K8s
+## 1.1. Clone installation projects
+
+- Clone lakehouse-platforms and k8s-in-action projects:
+```
+mkdir $PROJECT_PATH/lakehouse-platform
+git clone https://github.com/nitsvutt/lakehouse-platform.git $PROJECT_PATH/lakehouse-platform
+```
+```
+mkdir $PROJECT_PATH/kubernetes-in-action
+git clone https://github.com/nitsvutt/kubernetes-in-action.git $PROJECT_PATH/kubernetes-in-action
+```
+
+### 1.2. Set up K8s
 
 - Create a K8s cluster:
 ```
@@ -26,7 +38,7 @@ docker network connect lakehouse_platform my-cluster-control-plane
 docker network connect lakehouse_platform my-cluster-worker
 ```
 
-## 1.2. Set up MinIO
+### 1.3. Set up MinIO
 
 - Run `docker compose`:
 ```

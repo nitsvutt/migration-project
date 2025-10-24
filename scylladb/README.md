@@ -16,7 +16,7 @@ docker build \
     --build-arg MINIO_ROOT_USER=$MINIO_ROOT_USER \
     --build-arg MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD \
     -t nitsvutt/scylla_with_agent:5.4.2 \
-    -f ./scylladb/Dockerfile \
+    -f $PROJECT_PATH/lakehouse-platform/scylladb/Dockerfile \
     .
 ```
 
@@ -29,22 +29,22 @@ kubectl create namespace scylla
 
 - Create persistent volume:
 ```
-kubectl apply -f ./scylladb/scylla-persistent-volume.yml
+kubectl apply -f ./scylladb/k8s/scylla-persistent-volume.yml
 ```
 
 - Create service:
 ```
-kubectl apply -f ./scylladb/scylla-service.yml
+kubectl apply -f ./scylladb/k8s/scylla-service.yml
 ```
 
 - Create config map:
 ```
-kubectl apply -f ./scylladb/scylla-configmap.yml
+kubectl apply -f ./scylladb/k8s/scylla-configmap.yml
 ```
 
 - Create Scylla and Scylla Manager statefulset:
 ```
-kubectl apply -f ./scylladb/scylla-statefulset.yml
+kubectl apply -f ./scylladb/k8s/scylla-statefulset.yml
 ```
 
 - Check Scylla Cluster:
@@ -66,7 +66,7 @@ kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
 
 - Run `docker compose`:
 ```
-docker compose -f ./scylladb/docker-compose.yml up -d
+docker compose -f $PROJECT_PATH/lakehouse-platform/scylladb/docker-compose.yml up -d
 ```
 
 - Check Scylla Cluster:
@@ -90,13 +90,13 @@ docker exec -it scylla-manager \
 
 - Generate data:
 ```
-python ./scylladb/development/generate_data.py
+python ./scylladb/workspace/generate_data.py
 ```
 
 - Copy `init_schema.sql` and `load_data.sql` to one pod:
 ```
-kubectl cp ./scylladb/development/init_schema.sql scylla/scylla-0:/var/lib/scylla
-kubectl cp ./scylladb/development/load_data.sql scylla/scylla-0:/var/lib/scylla
+kubectl cp ./scylladb/workspace/init_schema.sql scylla/scylla-0:/var/lib/scylla
+kubectl cp ./scylladb/workspace/load_data.sql scylla/scylla-0:/var/lib/scylla
 ```
 
 - Init schema:
@@ -120,7 +120,7 @@ kubectl exec -it scylla-0 -n scylla -- \
 - Backup schema:
 ```
 kubectl exec -it scylla-0 -n scylla -- \
-    cqlsh -e "DESC SCHEMA" > ./development/backup_schema.sql
+    cqlsh -e "DESC SCHEMA" > ./scylladb/workspace/backup_schema.sql
 ```
 
 - Create snapshot:
@@ -169,7 +169,7 @@ mc cp --recursive minio/scylladb/data2 /target/data2/tmp/
 
 - Restore schema:
 ```
-kubectl cp ./scylla/development/backup_schema.sql scylla-0:/var/lib/scylla/backup_schema.sql
+kubectl cp ./scylla/workspace/backup_schema.sql scylla-0:/var/lib/scylla/backup_schema.sql
 ```
 ```
 kubectl exec -it scylla-0 -n scylla -- \
