@@ -1,7 +1,7 @@
 # Migration Project
 
 ## Table of Contents
-1. [Set development environment](#setup-dev-env)
+1. [Set up development environment](#setup-dev-env)
 2. [ScyllaDB](#scylladb)
 
 <div id="setup-dev-env"/>
