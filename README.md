@@ -42,7 +42,7 @@ docker network connect lakehouse_platform my-cluster-worker
 
 - Run `docker compose`:
 ```
-docker compose -f ./minio/docker-compose.yml up -d
+docker compose -f $PROJECT_PATH/lakehouse-platform/minio/docker-compose.yml up -d
 ```
 
 
