@@ -22,21 +22,7 @@ git clone https://github.com/nitsvutt/kubernetes-in-action.git $PROJECT_PATH/kub
 
 ### 1.2. Set up K8s
 
-- Create a K8s cluster:
-```
-envsubst < ./k8s/kind_cluster.yml | kind create cluster --config -
-```
-
-- Check `cluster-info`:
-```
-kubectl cluster-info --context kind-my-cluster
-```
-
-- Connect to pre-exsisting network:
-```
-docker network connect lakehouse_platform my-cluster-control-plane
-docker network connect lakehouse_platform my-cluster-worker
-```
+See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action) for more info.
 
 ### 1.3. Set up MinIO
 
