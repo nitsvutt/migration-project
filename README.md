@@ -34,6 +34,6 @@ docker compose -f $PROJECT_PATH/lakehouse-platform/minio/docker-compose.yml up -
 
 <div id="scylladb"/>
 
-## 2. ScyllaDB
+## 2. ScyllaDB Migration
 
 See [ScyllaDB Migration](scylladb/README.md) for more info.
