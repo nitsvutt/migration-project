@@ -22,45 +22,7 @@ docker build \
 
 #### 1.1. On K8s
 
-- Create `scylla` namespace:
-```
-kubectl create namespace scylla
-```
-
-- Create persistent volume:
-```
-kubectl apply -f ./scylladb/k8s/scylla-persistent-volume.yml
-```
-
-- Create service:
-```
-kubectl apply -f ./scylladb/k8s/scylla-service.yml
-```
-
-- Create config map:
-```
-kubectl apply -f ./scylladb/k8s/scylla-configmap.yml
-```
-
-- Create Scylla and Scylla Manager statefulset:
-```
-kubectl apply -f ./scylladb/k8s/scylla-statefulset.yml
-```
-
-- Check Scylla Cluster:
-```
-kubectl exec -it scylla-0 -n scylla -- \
-    nodetool status
-```
-
-- Add Scylla Cluster for Scylla Manager:
-```
-kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
-    sctool cluster add \
-    --host scylla-0.scylla-clusterip.scylla.svc.cluster.local \
-    --name my-cluster \
-    --auth-token $SCYLLADB_AUTH_TOKEN
-```
+See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action) for more info.
 
 #### 1.2. Using Docker Compose
 
