@@ -27,13 +27,27 @@ services:
     networks:
       - lakehouse_platform
   
+  # scylla-node3:
+  #   image: nitsvutt/scylla_with_agent:5.4.2
+  #   container_name: scylla-node3
+  #   command: --seeds scylla-node1 --smp 2 --memory 2G --cpuset 5,6
+  #   volumes:
+  #     - $COMMON_PATH/scylladb/data3:/var/lib/scylla
+  #     - $PROJECT_PATH/migration-project/scylladb/config/scylla.yaml:/etc/scylla/scylla.yaml
+  #   ports:
+  #     - 9044:9042
+  #   depends_on:
+  #     - scylla-node1
+  #   networks:
+  #     - lakehouse_platform
+  
   scylla-manager-db:
     image: scylladb/scylla:5.4.2
     container_name: scylla-manager-db
     volumes:
       - $COMMON_PATH/scylladb/manager_db:/var/lib/scylla
       - $PROJECT_PATH/migration-project/scylladb/config/scylla-manager-db.yaml:/etc/scylla/scylla.yaml
-    command: --smp 1 --memory 1G --cpuset 5
+    command: --smp 1 --memory 1G --cpuset 7
     networks:
       - lakehouse_platform
 

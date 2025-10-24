@@ -251,7 +251,7 @@ kubectl exec -it scylla-manager-0 -c scylla-manager -n scylla -- \
 - Restore schema (can test with `--dry-run` flag):
 ```
 docker exec -it scylla-manager \
-    sctool restore -c my-cluster -L s3:scylladb -K sherlock -T sm_20251022095353UTC --restore-schema
+    sctool restore -c my-cluster -L s3:scylladb -T sm_20251022095353UTC --restore-schema
 ```
 
 - Rolling restart Scylla Cluster (only for ScyllaDB 5.4/2024.1 or older), remember to check `nodetool status` for each operation:
@@ -273,7 +273,7 @@ docker exec -it scylla-manager \
 - Check restore progress:
 ```
 docker exec -it scylla-manager \
-    sctool progress -c my-cluster restore/a6b7d779-bdfa-46a8-a76b-8b151e1459df
+    sctool progress -c my-cluster restore/4e1a6d36-ff69-46a5-91f9-d3bb109c1db3
 ```
 
 ### 2.3.3. Note
