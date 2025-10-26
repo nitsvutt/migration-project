@@ -31,7 +31,6 @@ See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action) for
 docker compose -f $PROJECT_PATH/lakehouse-platform/minio/docker-compose.yml up -d
 ```
 
-
 <div id="scylladb"/>
 
 ## 2. ScyllaDB Migration
