@@ -190,9 +190,13 @@ docker exec -it scylla-manager \
 - Rolling restart Scylla Cluster (only for ScyllaDB 5.4/2024.1 or older), remember to check `nodetool status` for each operation:
 ```
 docker exec -it scylla-node1 \
+    nodetool drain
+docker exec -it scylla-node1 \
     supervisorctl restart scylla
 ```
 ```
+docker exec -it scylla-node2 \
+    nodetool drain
 docker exec -it scylla-node2 \
     supervisorctl restart scylla
 ```
@@ -208,7 +212,3 @@ docker exec -it scylla-manager \
 docker exec -it scylla-manager \
     sctool progress -c my-cluster restore/5fd24038-a2e7-40b7-a5c0-73e0af9772d6
 ```
-
-### 3.3. Note
-
-- Ensure that all of your materialized views were created with at least a filter like `IS NOT NULL`. If not, when recreating restored views, it will raise a stupid error called `WHERE` nothing.
