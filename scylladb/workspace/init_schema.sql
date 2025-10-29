@@ -1,7 +1,7 @@
 CREATE KEYSPACE IF NOT EXISTS sherlock
 WITH replication = {
-  'class': 'SimpleStrategy',
-  'replication_factor': 2
+  'class': 'NetworkTopologyStrategy',
+  'gcp-dc': 2
 };
 
 USE sherlock;
