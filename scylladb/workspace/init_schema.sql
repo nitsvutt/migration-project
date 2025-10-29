@@ -1,7 +1,7 @@
 CREATE KEYSPACE IF NOT EXISTS sherlock
 WITH replication = {
   'class': 'SimpleStrategy',
-  'replication_factor': 1
+  'replication_factor': 2
 };
 
 USE sherlock;
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   registration_date TIMESTAMP,
   PRIMARY KEY (user_id)
 );
--- CREATE INDEX users_by_email ON users (email);
+CREATE INDEX users_by_email ON users (email);
 -- CREATE MATERIALIZED VIEW mvw_users AS
 -- SELECT * FROM users 
 -- WHERE user_id IS NOT NULL
