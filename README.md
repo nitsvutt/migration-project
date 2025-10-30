@@ -1,5 +1,9 @@
 # Migration Project
 
+![license](https://img.shields.io/github/license/nitsvutt/migration-project)
+![stars](https://img.shields.io/github/stars/nitsvutt/migration-project)
+![forks](https://img.shields.io/github/forks/nitsvutt/migration-project)
+
 ## Table of Contents
 1. [Set up development environment](#setup-dev-env)
 2. [ScyllaDB](#scylladb)
