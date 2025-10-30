@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nodetool cfstats -H sherlock | awk '
+nodetool cfstats sherlock -H | awk '
 BEGIN {
   printf "%-30s %-30s %-20s %-20s %-20s\n", "Keyspace", "Table", "Live", "Total", "Memtable"
 }

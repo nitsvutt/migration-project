@@ -52,13 +52,20 @@ docker exec -it scylla-manager \
 
 - Generate data:
 ```
-python ./scylladb/workspace/generate_data.py
+python $PROJECT_PATH/migration-project/scylladb/workspace/generate_data.py
+```
+
+- Copy data to one pod:
+```
+kubectl cp ${COMMON_PATH}/tmp/users.csv scylla/scylla-0:/var/lib/scylla/
+kubectl cp ${COMMON_PATH}/tmp/products.csv scylla/scylla-0:/var/lib/scylla/
+kubectl cp ${COMMON_PATH}/tmp/orders.csv scylla/scylla-0:/var/lib/scylla/
 ```
 
 - Copy `init_schema.sql` and `load_data.sql` to one pod:
 ```
-kubectl cp ./scylladb/workspace/init_schema.sql scylla/scylla-0:/var/lib/scylla
-kubectl cp ./scylladb/workspace/load_data.sql scylla/scylla-0:/var/lib/scylla
+kubectl cp $PROJECT_PATH/migration-project/scylladb/workspace/init_schemasql scylla/scylla-0:/var/lib/scylla/
+kubectl cp $PROJECT_PATH/migration-project/scylladb/workspace/load_data.sql scylla/scylla-0:/var/lib/scylla/
 ```
 
 - Init schema:
@@ -211,4 +218,149 @@ docker exec -it scylla-manager \
 ```
 docker exec -it scylla-manager \
     sctool progress -c my-cluster restore/2b789d3e-dd80-4d92-90f4-e0d9e7314413
+```
+
+### 3.3. By adding new data center to the existing cluster
+
+- Set up a data center named `gcp-dc`:
+```
+docker compose -f $PROJECT_PATH/lakehouse-platform/scylladb/docker-compose-mdc-1.yml up -d
+```
+
+- Check status:
+```
+docker exec -it scylla-node1 \
+    nodetool status
+```
+
+- Copy data to one node:
+```
+docker cp ${COMMON_PATH}/tmp/users.csv scylla-node1:/var/lib/scylla/
+docker cp ${COMMON_PATH}/tmp/products.csv scylla-node1:/var/lib/scylla/
+docker cp ${COMMON_PATH}/tmp/orders.csv scylla-node1:/var/lib/scylla/
+```
+
+- Copy `init_schema.sql` and `load_data.sql` to one node:
+```
+docker cp $PROJECT_PATH/migration-project/scylladb/workspace/init_schema.sql scylla-node1:/var/lib/scylla/
+docker cp $PROJECT_PATH/migration-project/scylladb/workspace/load_data.sql scylla-node1:/var/lib/scylla/
+```
+
+- Init schema:
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -f /var/lib/scylla/init_schema.sql
+```
+
+- Load data:
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -f /var/lib/scylla/load_data.sql
+```
+
+- Set up a clean data center named `fci-dc`:
+```
+docker compose -f $PROJECT_PATH/lakehouse-platform/scylladb/docker-compose-mdc-2.yml up -d
+```
+
+- Check status:
+```
+docker exec -it scylla-node1 \
+    nodetool status
+```
+
+- Alter keyspace add new data center:
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -e "
+        ALTER KEYSPACE system_auth
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'gcp-dc': 3, 'fci-dc': 3};
+        ALTER KEYSPACE system_distributed
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'gcp-dc': 3, 'fci-dc': 3};
+        ALTER KEYSPACE system_traces
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'gcp-dc': 3, 'fci-dc': 3}
+    "
+```
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -e "
+        ALTER KEYSPACE sherlock
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'gcp-dc': 3, 'fci-dc': 3}
+    "
+```
+
+- Rebuild data on each node of `fci-dc`:
+```
+docker exec -it scylla-node3 \
+    nodetool rebuild gcp-dc
+```
+```
+docker exec -it scylla-node4 \
+    nodetool rebuild gcp-dc
+```
+
+- Repair partition range on each node of the cluster (full cluster repair):
+```
+docker exec -it scylla-node1 \
+    nodetool repair -pr
+```
+```
+docker exec -it scylla-node2 \
+    nodetool repair -pr
+```
+```
+docker exec -it scylla-node3 \
+    nodetool repair -pr
+```
+```
+docker exec -it scylla-node4 \
+    nodetool repair -pr
+```
+
+- Test by inserting data to `gcp-dc`:
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -e "
+        INSERT INTO sherlock.users (user_id, email, first_name, last_name, registration_date)
+        VALUES (uuid(), 'nitsvutt@gmail.com', 'Vu', 'Tran', toTimeStamp(now()))
+    "
+```
+
+- Alter keyspace remove old data center:
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -e "
+        ALTER KEYSPACE system_auth
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'fci-dc': 3};
+        ALTER KEYSPACE system_distributed
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'fci-dc': 3};
+        ALTER KEYSPACE system_traces
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'fci-dc': 3}
+    "
+```
+```
+docker exec -it scylla-node1 \
+    cqlsh -u cassandra -p cassandra -e "
+        ALTER KEYSPACE sherlock
+        WITH replication = {'class': 'NetworkTopologyStrategy', 'fci-dc': 3}
+    "
+```
+
+- Remove `gcp-dc`:
+```
+docker exec -it scylla-node1 \
+    nodetool decommission
+```
+```
+docker exec -it scylla-node2 \
+    nodetool decommission
+```
+
+- Test by inserting data to `fci-dc`:
+```
+docker exec -it scylla-node3 \
+    cqlsh -u cassandra -p cassandra -e "
+        INSERT INTO sherlock.users (user_id, email, first_name, last_name, registration_date)
+        VALUES (uuid(), 'vu.tran2@tiki.com.vn', 'Vu', 'Tran', toTimeStamp(now()))
+    "
 ```

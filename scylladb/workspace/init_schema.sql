@@ -1,7 +1,7 @@
 CREATE KEYSPACE IF NOT EXISTS sherlock
 WITH replication = {
   'class': 'NetworkTopologyStrategy',
-  'gcp-dc': 2
+  'gcp-dc': 3
 };
 
 USE sherlock;
@@ -37,3 +37,6 @@ CREATE TABLE IF NOT EXISTS orders (
   quantity INT,
   PRIMARY KEY (order_id)
 );
+
+CREATE ROLE sherlockian WITH LOGIN = true AND PASSWORD = 'password';
+GRANT SELECT ON KEYSPACE sherlock TO sherlockian;
