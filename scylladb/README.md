@@ -71,13 +71,13 @@ kubectl cp $PROJECT_PATH/migration-project/scylladb/workspace/load_data.sql scyl
 - Init schema:
 ```
 kubectl exec -it scylla-0 -n scylla -- \
-    cqlsh -f /var/lib/scylla/init_schema.sql
+    cqlsh -u cassandra -f /var/lib/scylla/init_schema.sql
 ```
 
 - Load data:
 ```
 kubectl exec -it scylla-0 -n scylla -- \
-    cqlsh -f /var/lib/scylla/load_data.sql
+    cqlsh -u cassandra -f /var/lib/scylla/load_data.sql
 ```
 
 <div id="migrate-data"/>
@@ -89,7 +89,7 @@ kubectl exec -it scylla-0 -n scylla -- \
 - Backup schema:
 ```
 kubectl exec -it scylla-0 -n scylla -- \
-    cqlsh -e "DESC SCHEMA" > ./scylladb/workspace/backup_schema.sql
+    cqlsh -u cassandra -e "DESC SCHEMA" > ./scylladb/workspace/backup_schema.sql
 ```
 
 - Create snapshot:
@@ -249,13 +249,13 @@ docker cp $PROJECT_PATH/migration-project/scylladb/workspace/load_data.sql scyll
 - Init schema:
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -f /var/lib/scylla/init_schema.sql
+    cqlsh -u cassandra -f /var/lib/scylla/init_schema.sql
 ```
 
 - Load data:
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -f /var/lib/scylla/load_data.sql
+    cqlsh -u cassandra -f /var/lib/scylla/load_data.sql
 ```
 
 - Set up a clean data center named `fci-dc`:
@@ -272,7 +272,7 @@ docker exec -it scylla-node1 \
 - Alter keyspace add new data center:
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -e "
+    cqlsh -u cassandra -e "
         ALTER KEYSPACE system_auth
         WITH replication = {'class': 'NetworkTopologyStrategy', 'gcp-dc': 3, 'fci-dc': 3};
         ALTER KEYSPACE system_distributed
@@ -283,7 +283,7 @@ docker exec -it scylla-node1 \
 ```
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -e "
+    cqlsh -u cassandra -e "
         ALTER KEYSPACE sherlock
         WITH replication = {'class': 'NetworkTopologyStrategy', 'gcp-dc': 3, 'fci-dc': 3}
     "
@@ -320,7 +320,7 @@ docker exec -it scylla-node4 \
 - Test by inserting data to `gcp-dc`:
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -e "
+    cqlsh -u cassandra -e "
         INSERT INTO sherlock.users (user_id, email, first_name, last_name, registration_date)
         VALUES (uuid(), 'nitsvutt@gmail.com', 'Vu', 'Tran', toTimeStamp(now()))
     "
@@ -329,7 +329,7 @@ docker exec -it scylla-node1 \
 - Alter keyspace remove old data center:
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -e "
+    cqlsh -u cassandra -e "
         ALTER KEYSPACE system_auth
         WITH replication = {'class': 'NetworkTopologyStrategy', 'fci-dc': 3};
         ALTER KEYSPACE system_distributed
@@ -340,7 +340,7 @@ docker exec -it scylla-node1 \
 ```
 ```
 docker exec -it scylla-node1 \
-    cqlsh -u cassandra -p cassandra -e "
+    cqlsh -u cassandra -e "
         ALTER KEYSPACE sherlock
         WITH replication = {'class': 'NetworkTopologyStrategy', 'fci-dc': 3}
     "
@@ -359,8 +359,8 @@ docker exec -it scylla-node2 \
 - Test by inserting data to `fci-dc`:
 ```
 docker exec -it scylla-node3 \
-    cqlsh -u cassandra -p cassandra -e "
+    cqlsh -u cassandra -e "
         INSERT INTO sherlock.users (user_id, email, first_name, last_name, registration_date)
-        VALUES (uuid(), 'vu.tran2@tiki.com.vn', 'Vu', 'Tran', toTimeStamp(now()))
+        VALUES (uuid(), 'nitsvutt@gmail.com', 'Vu', 'Tran', toTimeStamp(now()))
     "
 ```
