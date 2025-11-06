@@ -142,7 +142,7 @@ kubectl cp ./scylla/workspace/backup_schema.sql scylla-0:/var/lib/scylla/backup_
 ```
 ```
 kubectl exec -it scylla-0 -n scylla -- \
-    cqlsh -f /var/lib/scylla/backup_schema.sql
+    cqlsh -u cassandra -f /var/lib/scylla/backup_schema.sql
 ```
 
 - Refresh data:
