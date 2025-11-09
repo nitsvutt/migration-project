@@ -22,7 +22,7 @@ docker build \
 
 #### 1.1. On K8s
 
-See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action) for more info.
+See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action#scylladb-on-k8s) for more info.
 
 #### 1.2. Using Docker Compose
 

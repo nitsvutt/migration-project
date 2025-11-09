@@ -26,7 +26,7 @@ git clone https://github.com/nitsvutt/kubernetes-in-action.git $PROJECT_PATH/kub
 
 ### 1.2. Set up K8s
 
-See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action) for more info.
+See [Kubernetes in Action](https://github.com/nitsvutt/kubernetes-in-action#set-up-dev-env) for more info.
 
 ### 1.3. Set up MinIO
 
